@@ -16,6 +16,9 @@ export default {
       fontFamily: {
         heading: ['Space Grotesk', 'sans-serif'],
         body: ['DM Sans', 'sans-serif'],
+        display: ['Instrument Serif', 'Georgia', 'serif'],
+        sans: ['Outfit', 'system-ui', 'sans-serif'],
+        mono: ['JetBrains Mono', 'monospace'],
       },
       colors: {
         border: "hsl(var(--border))",
@@ -72,6 +75,14 @@ export default {
           "accent-foreground": "hsl(var(--sidebar-accent-foreground))",
           border: "hsl(var(--sidebar-border))",
           ring: "hsl(var(--sidebar-ring))",
+        },
+        landing: {
+          bg: "hsl(var(--landing-bg))",
+          fg: "hsl(var(--landing-fg))",
+          muted: "hsl(var(--landing-muted))",
+          surface: "hsl(var(--landing-surface))",
+          "surface-hover": "hsl(var(--landing-surface-hover))",
+          glow: "hsl(var(--landing-glow))",
         },
         chart: {
           1: "hsl(var(--chart-1))",

@@ -15,7 +15,7 @@ import {
 import { cn } from '@/lib/utils';
 
 const navItems = [
-  { to: '/', icon: LayoutDashboard, label: 'Dashboard' },
+  { to: '/dashboard', icon: LayoutDashboard, label: 'Dashboard' },
   { to: '/campaigns', icon: Megaphone, label: 'Campaigns' },
   { to: '/contacts', icon: Users, label: 'Contacts' },
   { to: '/journeys', icon: Route, label: 'Journeys' },
@@ -53,10 +53,7 @@ export default function AppSidebar() {
       {/* Nav */}
       <nav className="flex-1 space-y-1 px-3 py-4 overflow-y-auto">
         {navItems.map((item) => {
-          const isActive =
-            item.to === '/'
-              ? location.pathname === '/'
-              : location.pathname.startsWith(item.to);
+          const isActive = location.pathname.startsWith(item.to);
           return (
             <NavLink
               key={item.to}

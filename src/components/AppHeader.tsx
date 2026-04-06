@@ -5,7 +5,7 @@ import { Badge } from '@/components/ui/badge';
 import { useLocation } from 'react-router-dom';
 
 const pageTitles: Record<string, string> = {
-  '/': 'Dashboard',
+  '/dashboard': 'Dashboard',
   '/campaigns': 'Campaigns',
   '/campaigns/new': 'New Campaign',
   '/contacts': 'Contacts',
