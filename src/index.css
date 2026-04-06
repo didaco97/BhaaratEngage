@@ -85,6 +85,17 @@
     --success-foreground: 0 0% 100%;
     --warning: 40 90% 50%;
     --warning-foreground: 0 0% 10%;
+
+    --landing-bg: 225 30% 6%;
+    --landing-fg: 40 20% 95%;
+    --landing-muted: 220 15% 45%;
+    --landing-surface: 225 25% 11%;
+    --landing-surface-hover: 225 25% 15%;
+    --landing-glow: 28 92% 52%;
+
+    --font-display: 'Instrument Serif', Georgia, serif;
+    --font-sans: 'Outfit', system-ui, sans-serif;
+    --font-mono: 'JetBrains Mono', monospace;
     --info: 210 80% 55%;
     --info-foreground: 0 0% 100%;
 
