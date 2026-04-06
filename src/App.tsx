@@ -4,6 +4,7 @@ import { Toaster as Sonner } from "@/components/ui/sonner";
 import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import AppLayout from "./components/AppLayout";
+import Landing from "./pages/Landing";
 import Dashboard from "./pages/Dashboard";
 import Campaigns from "./pages/Campaigns";
 import CampaignBuilder from "./pages/CampaignBuilder";
@@ -24,8 +25,9 @@ const App = () => (
       <Sonner />
       <BrowserRouter>
         <Routes>
+          <Route path="/" element={<Landing />} />
           <Route element={<AppLayout />}>
-            <Route path="/" element={<Dashboard />} />
+            <Route path="/dashboard" element={<Dashboard />} />
             <Route path="/campaigns" element={<Campaigns />} />
             <Route path="/campaigns/new" element={<CampaignBuilder />} />
             <Route path="/campaigns/:id" element={<CampaignDetail />} />
