@@ -76,6 +76,14 @@ export default {
           border: "hsl(var(--sidebar-border))",
           ring: "hsl(var(--sidebar-ring))",
         },
+        landing: {
+          bg: "hsl(var(--landing-bg))",
+          fg: "hsl(var(--landing-fg))",
+          muted: "hsl(var(--landing-muted))",
+          surface: "hsl(var(--landing-surface))",
+          "surface-hover": "hsl(var(--landing-surface-hover))",
+          glow: "hsl(var(--landing-glow))",
+        },
         chart: {
           1: "hsl(var(--chart-1))",
           2: "hsl(var(--chart-2))",
