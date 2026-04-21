@@ -1,0 +1,47 @@
+{
+  "name": "bharatengage-backend",
+  "private": true,
+  "version": "0.1.0",
+  "type": "module",
+  "scripts": {
+    "dev": "tsx watch src/server.ts",
+    "build": "tsc -p tsconfig.build.json",
+    "build:workers": "tsc -p tsconfig.workers.json",
+    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "typecheck:workers": "tsc -p tsconfig.workers.json --noEmit",
+    "start": "node dist/server.js",
+    "worker:dialer": "tsx workers/run-dialer.ts",
+    "worker:journey": "tsx workers/run-journey.ts",
+    "worker:scheduler": "tsx workers/run-scheduler.ts",
+    "test": "vitest run",
+    "test:supabase": "vitest run -c vitest.supabase.config.ts",
+    "test:supabase:if-configured": "node scripts/run-supabase-tests-if-configured.mjs"
+  },
+  "dependencies": {
+    "@supabase/supabase-js": "^2.101.1",
+    "bullmq": "^5.73.2",
+    "cors": "^2.8.6",
+    "dotenv": "^17.4.1",
+    "express": "^5.2.1",
+    "express-rate-limit": "^8.3.2",
+    "helmet": "^8.1.0",
+    "ioredis": "^5.10.1",
+    "openai": "^6.34.0",
+    "pino": "^10.3.1",
+    "pino-http": "^11.0.0",
+    "plivo": "^4.75.9",
+    "plivo-stream-sdk-node": "^1.0.0",
+    "sarvamai": "^1.1.6",
+    "zod": "^4.3.6"
+  },
+  "devDependencies": {
+    "@types/cors": "^2.8.19",
+    "@types/express": "^5.0.6",
+    "@types/node": "^25.5.2",
+    "@types/supertest": "^7.2.0",
+    "supertest": "^7.2.2",
+    "tsx": "^4.21.0",
+    "typescript": "^5.9.3",
+    "vitest": "^4.1.2"
+  }
+}

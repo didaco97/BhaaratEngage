@@ -1,86 +1,162 @@
-import { useState } from 'react';
-import { NavLink, useLocation } from 'react-router-dom';
+import { NavLink, useLocation } from "react-router-dom";
 import {
-  LayoutDashboard,
-  Megaphone,
-  Users,
-  Route,
-  PhoneCall,
+  Activity,
   BarChart3,
-  Settings,
-  ChevronLeft,
-  ChevronRight,
   Flame,
-} from 'lucide-react';
-import { cn } from '@/lib/utils';
+  LayoutDashboard,
+  type LucideIcon,
+  Megaphone,
+  PhoneCall,
+  Route,
+  Settings,
+  ShieldCheck,
+  Users,
+} from "lucide-react";
+
+import { useCurrentViewer } from "@/hooks/useCurrentViewer";
+import { hasRoleAtLeast } from "@/lib/access-control";
+import type { Role } from "@/lib/api-contracts";
+import { cn } from "@/lib/utils";
 
 const navItems = [
-  { to: '/dashboard', icon: LayoutDashboard, label: 'Dashboard' },
-  { to: '/campaigns', icon: Megaphone, label: 'Campaigns' },
-  { to: '/contacts', icon: Users, label: 'Contacts' },
-  { to: '/journeys', icon: Route, label: 'Journeys' },
-  { to: '/call-records', icon: PhoneCall, label: 'Call Records' },
-  { to: '/reports', icon: BarChart3, label: 'Reports' },
-  { to: '/settings', icon: Settings, label: 'Settings' },
-];
+  { to: "/dashboard", icon: LayoutDashboard, label: "Dashboard", minimumRole: "viewer" },
+  { to: "/campaigns", icon: Megaphone, label: "Campaigns", minimumRole: "viewer" },
+  { to: "/contacts", icon: Users, label: "Contacts", minimumRole: "operator" },
+  { to: "/journeys", icon: Route, label: "Journeys", minimumRole: "viewer" },
+  { to: "/call-records", icon: PhoneCall, label: "Call records", minimumRole: "operator" },
+  { to: "/reports", icon: BarChart3, label: "Reports", minimumRole: "viewer" },
+  { to: "/settings", icon: Settings, label: "Settings", minimumRole: "workspace_admin" },
+] satisfies Array<{ to: string; icon: LucideIcon; label: string; minimumRole: Role }>;
+
+function isActivePath(currentPath: string, itemPath: string) {
+  return currentPath === itemPath || currentPath.startsWith(`${itemPath}/`);
+}
 
 export default function AppSidebar() {
-  const [collapsed, setCollapsed] = useState(false);
   const location = useLocation();
+  const { data: dashboard, viewer } = useCurrentViewer();
+
+  const activeCampaigns = dashboard?.overview.activeCampaigns ?? 0;
+  const totalCalls = dashboard?.overview.totalCalls ?? 0;
+  const workspaceName = dashboard?.workspace.name ?? "Workspace";
+  const visibleNavItems = navItems.filter((item) => hasRoleAtLeast(viewer?.role, item.minimumRole));
 
   return (
-    <aside
-      className={cn(
-        'fixed left-0 top-0 z-40 flex h-screen flex-col bg-sidebar border-r border-sidebar-border transition-all duration-300',
-        collapsed ? 'w-[68px]' : 'w-[240px]'
-      )}
-    >
-      {/* Logo */}
-      <div className="flex h-16 items-center gap-3 px-4 border-b border-sidebar-border">
-        <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-sidebar-primary">
-          <Flame className="h-5 w-5 text-sidebar-primary-foreground" />
-        </div>
-        {!collapsed && (
-          <div className="animate-fade-in">
-            <h1 className="font-heading text-sm font-bold text-sidebar-accent-foreground tracking-tight">
-              BharatVaani
-            </h1>
-            <p className="text-[10px] text-sidebar-foreground tracking-widest uppercase">Engage</p>
+    <>
+      <div className="mb-4 lg:hidden">
+        <div className="panel-strong rounded-[30px] px-4 py-4">
+          <div className="flex items-center justify-between gap-3">
+            <div className="flex items-center gap-3">
+              <div className="flex h-11 w-11 items-center justify-center rounded-[16px] bg-foreground text-background shadow-[0_18px_40px_-24px_rgba(15,23,42,0.7)]">
+                <Flame className="h-5 w-5" />
+              </div>
+              <div>
+                <p className="text-base font-semibold text-foreground">BharatVaani Engage</p>
+                <p className="text-sm text-muted-foreground">Voice-first India workspace</p>
+              </div>
+            </div>
+
+            <div className="rounded-full bg-primary/10 px-3 py-1 text-xs font-semibold text-primary">
+              {activeCampaigns} live
+            </div>
           </div>
-        )}
+
+          <div className="mt-4 flex gap-2 overflow-x-auto pb-1">
+            {visibleNavItems.map((item) => {
+              const active = isActivePath(location.pathname, item.to);
+              return (
+                <NavLink
+                  key={item.to}
+                  to={item.to}
+                  className={cn(
+                    "flex shrink-0 items-center gap-2 rounded-full px-4 py-2 text-sm font-medium transition-all",
+                    active ? "bg-foreground text-background" : "bg-white/55 text-muted-foreground",
+                  )}
+                >
+                  <item.icon className="h-4 w-4" />
+                  {item.label}
+                </NavLink>
+              );
+            })}
+          </div>
+        </div>
       </div>
 
-      {/* Nav */}
-      <nav className="flex-1 space-y-1 px-3 py-4 overflow-y-auto">
-        {navItems.map((item) => {
-          const isActive = location.pathname.startsWith(item.to);
-          return (
-            <NavLink
-              key={item.to}
-              to={item.to}
-              className={cn(
-                'flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-all duration-200',
-                isActive
-                  ? 'bg-sidebar-primary text-sidebar-primary-foreground shadow-md'
-                  : 'text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground'
-              )}
-            >
-              <item.icon className="h-[18px] w-[18px] shrink-0" />
-              {!collapsed && <span className="animate-fade-in">{item.label}</span>}
-            </NavLink>
-          );
-        })}
-      </nav>
+      <aside className="hidden lg:fixed lg:left-[max(1.75rem,calc((100vw-1600px)/2+1.75rem))] lg:top-6 lg:z-40 lg:block lg:h-[calc(100vh-3rem)] lg:w-[290px]">
+        <div className="panel-strong flex h-full flex-col rounded-[34px] px-5 py-6">
+          <div className="flex items-center gap-3">
+            <div className="flex h-12 w-12 items-center justify-center rounded-[18px] bg-foreground text-background shadow-[0_24px_60px_-34px_rgba(15,23,42,0.72)]">
+              <Flame className="h-5 w-5" />
+            </div>
+            <div>
+              <p className="text-lg font-semibold text-foreground">BharatVaani Engage</p>
+              <p className="text-sm text-muted-foreground">Structured outreach for India</p>
+            </div>
+          </div>
 
-      {/* Collapse toggle */}
-      <div className="border-t border-sidebar-border p-3">
-        <button
-          onClick={() => setCollapsed(!collapsed)}
-          className="flex w-full items-center justify-center rounded-lg py-2 text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground transition-colors"
-        >
-          {collapsed ? <ChevronRight className="h-4 w-4" /> : <ChevronLeft className="h-4 w-4" />}
-        </button>
-      </div>
-    </aside>
+          <div className="mt-5 rounded-[22px] bg-white/55 px-4 py-3">
+            <p className="section-eyebrow">Workspace</p>
+            <div className="mt-2 flex items-center justify-between gap-3">
+              <p className="text-sm font-semibold text-foreground">{workspaceName}</p>
+              <span className="rounded-full bg-primary/10 px-3 py-1 text-xs font-semibold text-primary">
+                {activeCampaigns} live
+              </span>
+            </div>
+          </div>
+
+          <nav className="mt-5 flex-1 space-y-2 overflow-y-auto pr-1">
+            {visibleNavItems.map((item) => {
+              const active = isActivePath(location.pathname, item.to);
+              return (
+                <NavLink
+                  key={item.to}
+                  to={item.to}
+                  className={cn(
+                    "group flex items-center gap-3 rounded-[22px] px-4 py-3 text-sm font-medium transition-all",
+                    active
+                      ? "bg-foreground text-background shadow-[0_18px_40px_-26px_rgba(15,23,42,0.65)]"
+                      : "text-sidebar-foreground hover:bg-white/55 hover:text-foreground",
+                  )}
+                >
+                  <item.icon className={cn("h-4 w-4", !active && "text-muted-foreground group-hover:text-foreground")} />
+                  <span>{item.label}</span>
+                  {active ? <span className="ml-auto h-2.5 w-2.5 rounded-full bg-primary" /> : null}
+                </NavLink>
+              );
+            })}
+          </nav>
+
+          <div className="space-y-3 pt-4">
+            <div className="panel-subtle rounded-[24px] p-4">
+              <div className="flex items-start gap-3">
+                <div className="flex h-10 w-10 items-center justify-center rounded-[14px] bg-primary/10 text-primary">
+                  <Activity className="h-4 w-4" />
+                </div>
+                <div>
+                  <p className="text-sm font-semibold text-foreground">Launch pacing is healthy</p>
+                  <p className="mt-1 text-sm leading-6 text-muted-foreground">
+                    {totalCalls.toLocaleString()} attempts logged with quiet-hour controls active.
+                  </p>
+                </div>
+              </div>
+            </div>
+
+            <div className="panel-subtle rounded-[24px] p-4">
+              <div className="flex items-start gap-3">
+                <div className="flex h-10 w-10 items-center justify-center rounded-[14px] bg-success/10 text-success">
+                  <ShieldCheck className="h-4 w-4" />
+                </div>
+                <div>
+                  <p className="text-sm font-semibold text-foreground">Security defaults on</p>
+                  <p className="mt-1 text-sm leading-6 text-muted-foreground">
+                    Sensitive values stay encrypted and exports remain masked across every workspace.
+                  </p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </aside>
+    </>
   );
 }

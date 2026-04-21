@@ -1,374 +1,510 @@
-import { motion } from 'framer-motion';
-import { Link } from 'react-router-dom';
+import { motion } from "framer-motion";
+import { useQuery } from "@tanstack/react-query";
 import {
-  PhoneCall, MessageSquare, MessageCircle, Shield, BarChart3,
-  Users, ArrowRight, Flame, Globe, CheckCircle, Zap, Lock, ChevronRight
-} from 'lucide-react';
-import heroVisual from '@/assets/hero-visual.jpg';
+  ArrowRight,
+  BarChart3,
+  CheckCircle2,
+  Files,
+  MessageCircle,
+  MessageSquare,
+  PhoneCall,
+  Route,
+  Shield,
+  Sparkles,
+  Users,
+} from "lucide-react";
+import { Link } from "react-router-dom";
+
+import { api } from "@/lib/api-client";
+import { formatLabel } from "@/lib/formatters";
+import { queryKeys } from "@/lib/query-keys";
+import PageStateCard from "@/components/PageStateCard";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 
 const fadeUp = {
-  hidden: { opacity: 0, y: 30 },
-  visible: (i: number) => ({
-    opacity: 1, y: 0,
-    transition: { delay: i * 0.12, duration: 0.7, ease: [0.22, 1, 0.36, 1] }
+  hidden: { opacity: 0, y: 32 },
+  visible: (index: number) => ({
+    opacity: 1,
+    y: 0,
+    transition: { delay: index * 0.08, duration: 0.7, ease: [0.22, 1, 0.36, 1] },
   }),
 };
 
 const stagger = {
-  visible: { transition: { staggerChildren: 0.1 } }
+  visible: { transition: { staggerChildren: 0.08 } },
 };
 
+const capabilityCards = [
+  {
+    icon: Users,
+    title: "Workspace and access",
+    description:
+      "Separate client and internal operations surfaces with auditable launches, pauses, exports, and transcript access.",
+  },
+  {
+    icon: PhoneCall,
+    title: "Scripted-first collection",
+    description:
+      "Voice agents disclose the caller, collect fields in order, answer brief questions, then return to the active step.",
+  },
+  {
+    icon: Route,
+    title: "Outcome-based journeys",
+    description:
+      "Voice leads the flow, while SMS and WhatsApp recover unanswered or partial outcomes without becoming the primary channel.",
+  },
+  {
+    icon: Shield,
+    title: "Sensitive by default",
+    description:
+      "Sensitive fields are flagged in the builder, encrypted at rest, masked in CSV, and redacted in operational transcript views.",
+  },
+];
+
+const methodologyCards = [
+  {
+    title: "Clear information hierarchy",
+    detail: "Every screen prioritizes the next decision: launch, monitor, review, or export.",
+  },
+  {
+    title: "Progressive disclosure",
+    detail: "Complex controls stay grouped into steps so campaign managers do not face the whole system at once.",
+  },
+  {
+    title: "Status visibility",
+    detail: "Quiet hours, provider failures, transfer queues, and export state stay visible without digging through tables.",
+  },
+  {
+    title: "Error prevention",
+    detail: "Sensitive data markers, policy checks, confirmation review, and launch review reduce operator mistakes.",
+  },
+];
+
+const launchCards = [
+  {
+    title: "Client workspace",
+    description: "Campaign managers create templates, configure fields, upload CSVs, and launch journeys with confidence.",
+  },
+  {
+    title: "Operations desk",
+    description: "Operators and reviewers monitor attempts, inspect transcripts, export results, and manage transfer queues.",
+  },
+];
+
 export default function Landing() {
+  const dashboardQuery = useQuery({
+    queryKey: queryKeys.dashboard,
+    queryFn: api.getDashboardSnapshot,
+  });
+  const campaignsQuery = useQuery({
+    queryKey: queryKeys.campaigns(),
+    queryFn: () => api.listCampaigns(),
+  });
+  const dashboard = dashboardQuery.data;
+  const campaigns = campaignsQuery.data;
+  const pageError = dashboardQuery.error ?? campaignsQuery.error;
+
+  const primaryCampaign = campaigns?.[0];
+  const overview = dashboard?.overview;
+
+  if (dashboardQuery.isPending && !dashboard) {
+    return (
+      <div className="min-h-screen px-4 py-12 sm:px-6">
+        <PageStateCard
+          title="Loading product overview"
+          description="Fetching the latest workspace metrics and campaign preview for the landing surface."
+        />
+      </div>
+    );
+  }
+
+  if (pageError) {
+    return (
+      <div className="min-h-screen px-4 py-12 sm:px-6">
+        <PageStateCard
+          title="Product overview unavailable"
+          description={pageError instanceof Error ? pageError.message : "Landing data could not be loaded."}
+        />
+      </div>
+    );
+  }
+
   return (
-    <div className="min-h-screen bg-landing-bg text-landing-fg overflow-hidden">
-      {/* Nav */}
-      <nav className="fixed top-0 left-0 right-0 z-50 border-b border-landing-surface bg-landing-bg/80 backdrop-blur-xl">
-        <div className="mx-auto max-w-7xl flex items-center justify-between px-6 h-16">
-          <div className="flex items-center gap-2.5">
-            <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary">
-              <Flame className="h-4 w-4 text-primary-foreground" />
+    <div className="min-h-screen overflow-hidden text-landing-fg">
+      <div className="pointer-events-none absolute inset-0">
+        <div className="absolute left-[-12%] top-[-10%] h-[28rem] w-[28rem] rounded-full bg-primary/[0.18] blur-[160px]" />
+        <div className="absolute right-[-8%] top-[12%] h-[24rem] w-[24rem] rounded-full bg-accent/[0.14] blur-[160px]" />
+        <div className="absolute bottom-[-16%] left-[18%] h-[26rem] w-[26rem] rounded-full bg-chart-3/10 blur-[180px]" />
+      </div>
+
+      <nav className="fixed inset-x-0 top-0 z-50 px-4 py-4 sm:px-6">
+        <div className="panel-strong mx-auto flex max-w-7xl items-center justify-between rounded-[28px] px-5 py-4">
+          <div className="flex items-center gap-3">
+            <div className="flex h-11 w-11 items-center justify-center rounded-[16px] bg-foreground text-background">
+              <Sparkles className="h-5 w-5" />
             </div>
-            <span className="font-display text-lg tracking-tight">BharatVaani</span>
-            <span className="text-[10px] font-mono text-landing-muted tracking-[0.2em] uppercase mt-1">Engage</span>
+            <div>
+              <p className="text-base font-semibold text-foreground">BharatVaani Engage</p>
+              <p className="text-sm text-muted-foreground">Voice-first campaign operating system</p>
+            </div>
           </div>
-          <div className="hidden md:flex items-center gap-8 text-sm text-landing-muted">
-            <a href="#features" className="hover:text-landing-fg transition-colors">Features</a>
-            <a href="#channels" className="hover:text-landing-fg transition-colors">Channels</a>
-            <a href="#security" className="hover:text-landing-fg transition-colors">Security</a>
-            <a href="#metrics" className="hover:text-landing-fg transition-colors">Results</a>
+
+          <div className="hidden items-center gap-6 md:flex">
+            <a href="#capabilities" className="text-sm text-muted-foreground transition-colors hover:text-foreground">
+              Capabilities
+            </a>
+            <a href="#surfaces" className="text-sm text-muted-foreground transition-colors hover:text-foreground">
+              Surfaces
+            </a>
+            <a href="#methodology" className="text-sm text-muted-foreground transition-colors hover:text-foreground">
+              Methodology
+            </a>
           </div>
-          <Link
-            to="/dashboard"
-            className="flex items-center gap-2 rounded-lg bg-primary px-4 py-2 text-sm font-medium text-primary-foreground hover:bg-primary/90 transition-colors"
-          >
-            Open Platform <ArrowRight className="h-3.5 w-3.5" />
+
+          <Link to="/dashboard">
+            <Button className="gap-2">
+              Open product
+              <ArrowRight className="h-4 w-4" />
+            </Button>
           </Link>
         </div>
       </nav>
 
-      {/* Hero */}
-      <section className="relative pt-32 pb-20 md:pt-44 md:pb-32">
-        {/* Background glow */}
-        <div className="absolute inset-0 overflow-hidden pointer-events-none">
-          <div className="absolute top-1/4 left-1/2 -translate-x-1/2 w-[800px] h-[600px] rounded-full bg-primary/8 blur-[120px]" />
-          <div className="absolute top-0 right-0 w-[400px] h-[400px] rounded-full bg-accent/5 blur-[100px]" />
-        </div>
-
-        <div className="relative mx-auto max-w-7xl px-6">
-          <motion.div
-            initial="hidden"
-            animate="visible"
-            variants={stagger}
-            className="max-w-3xl"
-          >
-            <motion.div variants={fadeUp} custom={0} className="flex items-center gap-2 mb-8">
-              <span className="flex h-5 w-5 items-center justify-center rounded-full bg-primary/20">
-                <span className="h-1.5 w-1.5 rounded-full bg-primary animate-pulse" />
-              </span>
-              <span className="text-xs font-mono text-landing-muted tracking-wider uppercase">India-first voice platform</span>
+      <section className="relative px-4 pb-24 pt-36 sm:px-6 sm:pt-40">
+        <div className="mx-auto grid max-w-7xl gap-10 lg:grid-cols-[1.1fr_0.9fr] lg:items-center">
+          <motion.div initial="hidden" animate="visible" variants={stagger} className="max-w-3xl">
+            <motion.div variants={fadeUp} custom={0}>
+              <Badge variant="secondary" className="gap-2 rounded-full px-4 py-2">
+                <span className="h-2 w-2 rounded-full bg-success" />
+                PRD-led redesign for outbound structured data collection
+              </Badge>
             </motion.div>
 
-            <motion.h1 variants={fadeUp} custom={1} className="font-display text-5xl md:text-7xl lg:text-8xl leading-[0.95] tracking-tight">
-              Every voice,{' '}
-              <span className="italic text-primary">captured.</span>
-              <br />
-              Every field,{' '}
-              <span className="italic text-accent">verified.</span>
+            <motion.h1
+              variants={fadeUp}
+              custom={1}
+              className="landing-display-title mt-8 max-w-3xl font-semibold text-foreground"
+            >
+              Clean, calm product design for voice journeys, data capture, and operational control.
             </motion.h1>
 
-            <motion.p variants={fadeUp} custom={2} className="mt-8 max-w-xl text-lg text-landing-muted leading-relaxed font-sans">
-              Run large-scale outbound data-collection campaigns across voice, SMS, and WhatsApp — with scripted AI agents that collect, verify, and confirm structured information in any Indian language.
-            </motion.p>
-
-            <motion.div variants={fadeUp} custom={3} className="mt-10 flex flex-wrap items-center gap-4">
-              <Link
-                to="/dashboard"
-                className="group flex items-center gap-2 rounded-xl bg-primary px-6 py-3.5 text-sm font-semibold text-primary-foreground hover:bg-primary/90 transition-all shadow-lg shadow-primary/20"
-              >
-                Launch a Campaign
-                <ArrowRight className="h-4 w-4 group-hover:translate-x-1 transition-transform" />
-              </Link>
-              <a
-                href="#features"
-                className="flex items-center gap-2 rounded-xl border border-landing-surface px-6 py-3.5 text-sm font-medium text-landing-fg hover:bg-landing-surface transition-all"
-              >
-                See How It Works
-              </a>
-            </motion.div>
-
-            {/* Proof bar */}
-            <motion.div variants={fadeUp} custom={4} className="mt-16 flex flex-wrap gap-8 text-sm">
-              {[
-                { val: '50K+', label: 'Calls / day' },
-                { val: '8', label: 'Languages' },
-                { val: '82%', label: 'Answer rate' },
-                { val: '< 3min', label: 'Avg. handling' },
-              ].map(s => (
-                <div key={s.label}>
-                  <p className="font-display text-2xl text-landing-fg">{s.val}</p>
-                  <p className="text-xs text-landing-muted font-mono tracking-wider mt-1">{s.label}</p>
-                </div>
-              ))}
-            </motion.div>
-          </motion.div>
-
-          {/* Hero visual */}
-          <motion.div
-            initial={{ opacity: 0, scale: 0.95 }}
-            animate={{ opacity: 1, scale: 1 }}
-            transition={{ delay: 0.5, duration: 1, ease: [0.22, 1, 0.36, 1] }}
-            className="mt-20 relative rounded-2xl overflow-hidden border border-landing-surface"
-          >
-            <img src={heroVisual} alt="BharatVaani voice engagement visualization" width={1920} height={1080} className="w-full object-cover" />
-            <div className="absolute inset-0 bg-gradient-to-t from-landing-bg via-transparent to-transparent" />
-            <div className="absolute bottom-6 left-6 right-6 flex items-center justify-between">
-              <div className="flex items-center gap-3">
-                <div className="flex -space-x-2">
-                  {['🇮🇳', '📞', '💬'].map((e, i) => (
-                    <span key={i} className="flex h-8 w-8 items-center justify-center rounded-full bg-landing-surface border border-landing-bg text-sm">{e}</span>
-                  ))}
-                </div>
-                <span className="text-xs text-landing-muted font-mono">Voice · SMS · WhatsApp</span>
-              </div>
-            </div>
-          </motion.div>
-        </div>
-      </section>
-
-      {/* Features */}
-      <section id="features" className="py-24 border-t border-landing-surface">
-        <div className="mx-auto max-w-7xl px-6">
-          <motion.div initial="hidden" whileInView="visible" viewport={{ once: true, margin: "-100px" }} variants={stagger}>
-            <motion.p variants={fadeUp} custom={0} className="text-xs font-mono text-primary tracking-[0.25em] uppercase">Platform Capabilities</motion.p>
-            <motion.h2 variants={fadeUp} custom={1} className="font-display text-4xl md:text-5xl mt-4 tracking-tight">
-              Built for <span className="italic">scale.</span><br />Designed for <span className="italic text-accent">India.</span>
-            </motion.h2>
-          </motion.div>
-
-          <motion.div
-            initial="hidden"
-            whileInView="visible"
-            viewport={{ once: true, margin: "-50px" }}
-            variants={stagger}
-            className="mt-16 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4"
-          >
-            {[
-              { icon: PhoneCall, title: 'Scripted Voice Agent', desc: 'AI follows your collection script, answers brief questions, returns to the flow, reads back and confirms every field.', accent: 'primary' },
-              { icon: Users, title: 'Campaign Builder', desc: 'Define fields, set prompts, mark sensitive data, configure calling windows — launch in minutes from a template.', accent: 'accent' },
-              { icon: Globe, title: '8 Indian Languages', desc: 'Hindi, Tamil, Telugu, Kannada, Bengali, Marathi, Gujarati, English — with natural multilingual conversation.', accent: 'primary' },
-              { icon: Zap, title: 'Journey Orchestration', desc: 'Sequenced voice → SMS → WhatsApp flows with retry logic, pacing controls, and outcome-based branching.', accent: 'accent' },
-              { icon: BarChart3, title: 'Live Dashboards', desc: 'Answer rates, completion rates, field-level drop-off, provider uptime — all in real-time.', accent: 'primary' },
-              { icon: Lock, title: 'Sensitive Data Handling', desc: 'AES-256 encryption at rest, masked CSV exports, redacted transcripts, and full audit trails.', accent: 'accent' },
-            ].map((f, i) => (
-              <motion.div
-                key={f.title}
-                variants={fadeUp}
-                custom={i}
-                className="group rounded-2xl border border-landing-surface bg-landing-surface/50 p-6 hover:bg-landing-surface-hover transition-all duration-300"
-              >
-                <div className={`flex h-10 w-10 items-center justify-center rounded-xl ${f.accent === 'primary' ? 'bg-primary/10' : 'bg-accent/10'}`}>
-                  <f.icon className={`h-5 w-5 ${f.accent === 'primary' ? 'text-primary' : 'text-accent'}`} />
-                </div>
-                <h3 className="mt-5 font-display text-xl">{f.title}</h3>
-                <p className="mt-3 text-sm text-landing-muted leading-relaxed font-sans">{f.desc}</p>
-              </motion.div>
-            ))}
-          </motion.div>
-        </div>
-      </section>
-
-      {/* Channels */}
-      <section id="channels" className="py-24 border-t border-landing-surface">
-        <div className="mx-auto max-w-7xl px-6">
-          <motion.div initial="hidden" whileInView="visible" viewport={{ once: true }} variants={stagger} className="text-center">
-            <motion.p variants={fadeUp} custom={0} className="text-xs font-mono text-primary tracking-[0.25em] uppercase">Multi-Channel</motion.p>
-            <motion.h2 variants={fadeUp} custom={1} className="font-display text-4xl md:text-5xl mt-4 tracking-tight">
-              One campaign. <span className="italic">Three channels.</span>
-            </motion.h2>
-          </motion.div>
-
-          <motion.div
-            initial="hidden"
-            whileInView="visible"
-            viewport={{ once: true }}
-            variants={stagger}
-            className="mt-16 grid grid-cols-1 md:grid-cols-3 gap-6"
-          >
-            {[
-              { icon: PhoneCall, name: 'Voice', tag: 'Primary', desc: 'Scripted outbound calls with real-time data collection, verification, and human transfer capability.', status: 'Live' },
-              { icon: MessageSquare, name: 'SMS', tag: 'Follow-up', desc: 'Missed call recovery, reminder nudges, callback prompts for unanswered contacts.', status: 'Live' },
-              { icon: MessageCircle, name: 'WhatsApp', tag: 'Follow-up', desc: 'Summary messages, incomplete re-engagement, and rich template-based follow-ups.', status: 'Live' },
-            ].map((ch, i) => (
-              <motion.div
-                key={ch.name}
-                variants={fadeUp}
-                custom={i}
-                className="relative rounded-2xl border border-landing-surface bg-landing-surface/30 p-8 text-center group hover:border-primary/30 transition-all duration-500"
-              >
-                <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-2xl bg-primary/10 group-hover:bg-primary/20 transition-colors">
-                  <ch.icon className="h-7 w-7 text-primary" />
-                </div>
-                <p className="mt-1 text-[10px] font-mono text-landing-muted tracking-widest uppercase">{ch.tag}</p>
-                <h3 className="mt-4 font-display text-2xl">{ch.name}</h3>
-                <p className="mt-3 text-sm text-landing-muted leading-relaxed font-sans">{ch.desc}</p>
-                <div className="mt-5 inline-flex items-center gap-1.5 rounded-full bg-success/10 px-3 py-1 text-[10px] font-mono text-success">
-                  <span className="h-1.5 w-1.5 rounded-full bg-success" /> {ch.status}
-                </div>
-              </motion.div>
-            ))}
-          </motion.div>
-
-          {/* Journey flow */}
-          <motion.div
-            initial={{ opacity: 0 }}
-            whileInView={{ opacity: 1 }}
-            viewport={{ once: true }}
-            transition={{ delay: 0.3, duration: 0.8 }}
-            className="mt-12 flex items-center justify-center gap-3 text-sm text-landing-muted"
-          >
-            <span className="rounded-lg bg-landing-surface px-3 py-1.5 font-mono text-xs">Voice Call</span>
-            <ChevronRight className="h-4 w-4" />
-            <span className="rounded-lg bg-landing-surface px-3 py-1.5 font-mono text-xs">If unanswered → SMS</span>
-            <ChevronRight className="h-4 w-4" />
-            <span className="rounded-lg bg-landing-surface px-3 py-1.5 font-mono text-xs">If partial → WhatsApp</span>
-          </motion.div>
-        </div>
-      </section>
-
-      {/* Security */}
-      <section id="security" className="py-24 border-t border-landing-surface">
-        <div className="mx-auto max-w-7xl px-6">
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-16 items-center">
-            <motion.div initial="hidden" whileInView="visible" viewport={{ once: true }} variants={stagger}>
-              <motion.p variants={fadeUp} custom={0} className="text-xs font-mono text-primary tracking-[0.25em] uppercase">Security & Compliance</motion.p>
-              <motion.h2 variants={fadeUp} custom={1} className="font-display text-4xl md:text-5xl mt-4 tracking-tight">
-                Sensitive data,{' '}<span className="italic">handled right.</span>
-              </motion.h2>
-              <motion.p variants={fadeUp} custom={2} className="mt-6 text-landing-muted leading-relaxed font-sans">
-                Every sensitive field is encrypted at rest, masked in exports, and redacted in transcripts. Full audit trails for every action. Multi-tenant isolation with zero cross-workspace data leakage.
-              </motion.p>
-            </motion.div>
-
-            <motion.div
-              initial="hidden"
-              whileInView="visible"
-              viewport={{ once: true }}
-              variants={stagger}
-              className="space-y-3"
+            <motion.p
+              variants={fadeUp}
+              custom={2}
+              className="mt-7 max-w-2xl text-lg leading-8 text-muted-foreground"
             >
+              BharatVaani Engage now reads like a focused operating system: campaign setup, journey orchestration,
+              verification, exports, and governance all arranged around the actual v1 workflow in your PRD.
+            </motion.p>
+
+            <motion.div variants={fadeUp} custom={3} className="mt-10 flex flex-wrap gap-3">
+              <Link to="/dashboard">
+                <Button size="lg" className="gap-2">
+                  Explore workspace
+                  <ArrowRight className="h-4 w-4" />
+                </Button>
+              </Link>
+              <a href="#methodology">
+                <Button variant="outline" size="lg">
+                  See design approach
+                </Button>
+              </a>
+            </motion.div>
+
+            <motion.div variants={fadeUp} custom={4} className="mt-12 grid grid-cols-2 gap-4 sm:grid-cols-4">
               {[
-                { icon: Shield, label: 'AES-256 encryption at rest', detail: 'All sensitive field values encrypted before storage' },
-                { icon: Lock, label: 'Masked CSV exports', detail: 'PAN, Aadhaar, and sensitive fields auto-masked' },
-                { icon: Users, label: 'Tenant isolation', detail: 'Strict workspace boundaries with zero cross-tenant access' },
-                { icon: CheckCircle, label: 'Audit logging', detail: 'Every launch, pause, export, and transcript access logged' },
-              ].map((item, i) => (
-                <motion.div
-                  key={item.label}
-                  variants={fadeUp}
-                  custom={i}
-                  className="flex items-start gap-4 rounded-xl border border-landing-surface bg-landing-surface/30 p-5 hover:border-primary/20 transition-colors"
-                >
-                  <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-primary/10">
-                    <item.icon className="h-4 w-4 text-primary" />
-                  </div>
-                  <div>
-                    <p className="text-sm font-medium">{item.label}</p>
-                    <p className="text-xs text-landing-muted mt-1">{item.detail}</p>
-                  </div>
-                </motion.div>
+                { value: overview ? `${overview.activeCampaigns}` : "--", label: "Live campaigns" },
+                { value: overview ? `${overview.avgAnswerRate}%` : "--", label: "Answer rate" },
+                { value: overview ? `${overview.avgConfirmationRate}%` : "--", label: "Confirmed data" },
+                { value: overview ? `${overview.maskedExportsToday}` : "--", label: "Masked exports today" },
+              ].map((item) => (
+                <div key={item.label} className="panel-subtle rounded-[24px] p-4">
+                  <p className="metric-value text-3xl text-foreground">{item.value}</p>
+                  <p className="mt-2 text-sm text-muted-foreground">{item.label}</p>
+                </div>
               ))}
             </motion.div>
-          </div>
-        </div>
-      </section>
-
-      {/* Metrics */}
-      <section id="metrics" className="py-24 border-t border-landing-surface">
-        <div className="mx-auto max-w-7xl px-6 text-center">
-          <motion.div initial="hidden" whileInView="visible" viewport={{ once: true }} variants={stagger}>
-            <motion.p variants={fadeUp} custom={0} className="text-xs font-mono text-primary tracking-[0.25em] uppercase">Results</motion.p>
-            <motion.h2 variants={fadeUp} custom={1} className="font-display text-4xl md:text-5xl mt-4 tracking-tight">
-              Numbers that <span className="italic">speak.</span>
-            </motion.h2>
           </motion.div>
 
           <motion.div
-            initial="hidden"
-            whileInView="visible"
-            viewport={{ once: true }}
-            variants={stagger}
-            className="mt-16 grid grid-cols-2 md:grid-cols-4 gap-6"
+            initial={{ opacity: 0, y: 24, scale: 0.98 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            transition={{ delay: 0.25, duration: 0.85, ease: [0.22, 1, 0.36, 1] }}
+            className="relative"
           >
-            {[
-              { val: '82%', label: 'Answer Rate', sub: 'Across all campaigns' },
-              { val: '67%', label: 'Completion Rate', sub: 'Full data collected' },
-              { val: '72%', label: 'Confirmation Rate', sub: 'User-verified data' },
-              { val: '3.2%', label: 'Opt-Out Rate', sub: 'Industry-low churn' },
-            ].map((m, i) => (
+            <div className="panel-strong noise rounded-[36px] p-4 shadow-[0_40px_120px_-70px_rgba(15,23,42,0.5)] sm:p-5">
+              <div className="rounded-[30px] bg-[linear-gradient(180deg,rgba(255,255,255,0.98),rgba(242,247,255,0.92))] p-5">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="section-eyebrow">Launch review</p>
+                    <h2 className="mt-3 text-2xl font-semibold text-foreground">
+                      {primaryCampaign?.name ?? "Loading campaign preview"}
+                    </h2>
+                  </div>
+                  <Badge>{primaryCampaign?.status ?? "pending"}</Badge>
+                </div>
+
+                <div className="mt-6 grid gap-3 sm:grid-cols-2">
+                  <div className="inset-surface rounded-[24px] p-4">
+                    <p className="section-eyebrow">Builder summary</p>
+                    <div className="mt-3 space-y-3">
+                      <div className="flex items-center justify-between text-sm text-muted-foreground">
+                        <span>Template</span>
+                        <span className="font-medium text-foreground">{primaryCampaign?.template ?? "--"}</span>
+                      </div>
+                      <div className="flex items-center justify-between text-sm text-muted-foreground">
+                        <span>Language</span>
+                        <span className="font-medium text-foreground">
+                          {primaryCampaign ? formatLabel(primaryCampaign.language) : "--"}
+                        </span>
+                      </div>
+                      <div className="flex items-center justify-between text-sm text-muted-foreground">
+                        <span>Field steps</span>
+                        <span className="font-medium text-foreground">{primaryCampaign?.fields.length ?? "--"}</span>
+                      </div>
+                      <div className="flex items-center justify-between text-sm text-muted-foreground">
+                        <span>Sensitive markers</span>
+                        <span className="font-medium text-foreground">{primaryCampaign?.sensitiveFieldCount ?? "--"}</span>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="inset-surface rounded-[24px] p-4">
+                    <p className="section-eyebrow">Journey sequence</p>
+                    <div className="mt-3 space-y-2">
+                      {(primaryCampaign?.sequence ?? ["Preparing journey preview"]).map((step) => (
+                        <div key={step} className="flex items-center gap-3 rounded-[18px] bg-white/70 px-3 py-2">
+                          <div className="flex h-9 w-9 items-center justify-center rounded-[14px] bg-primary/10 text-primary">
+                            {step.includes("Voice") ? (
+                              <PhoneCall className="h-4 w-4" />
+                            ) : step.includes("SMS") ? (
+                              <MessageSquare className="h-4 w-4" />
+                            ) : (
+                              <MessageCircle className="h-4 w-4" />
+                            )}
+                          </div>
+                          <div>
+                            <p className="text-sm font-semibold text-foreground">{step}</p>
+                            <p className="text-xs text-muted-foreground">Outcome branch stays linked to the same campaign.</p>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+
+                <div className="mt-5 grid gap-3 md:grid-cols-[1.2fr_0.8fr]">
+                  <div className="inset-surface rounded-[24px] p-4">
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <p className="section-eyebrow">Field collection</p>
+                        <p className="mt-2 text-sm leading-6 text-muted-foreground">
+                          Prompts are linear, verification stays explicit, and each sensitive value is tagged before launch.
+                        </p>
+                      </div>
+                      <Shield className="h-5 w-5 text-primary" />
+                    </div>
+
+                    <div className="mt-4 space-y-3">
+                      {(primaryCampaign?.fields.slice(0, 3) ?? []).map((field, index) => (
+                        <div key={field.field_key} className="flex gap-3 rounded-[18px] bg-white/70 px-4 py-3">
+                          <div className="flex h-9 w-9 items-center justify-center rounded-[14px] bg-foreground text-background">
+                            {index + 1}
+                          </div>
+                          <div>
+                            <p className="text-sm font-semibold text-foreground">{field.label}</p>
+                            <p className="mt-1 text-sm leading-6 text-muted-foreground">{field.prompt}</p>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+
+                  <div className="inset-surface rounded-[24px] p-4">
+                    <p className="section-eyebrow">Ops snapshot</p>
+                    <div className="mt-4 space-y-3">
+                      {[
+                        { label: "Answer rate", value: primaryCampaign ? `${primaryCampaign.answerRate}%` : "--" },
+                        { label: "Completion", value: primaryCampaign ? `${primaryCampaign.completionRate}%` : "--" },
+                        { label: "Confirmed", value: primaryCampaign ? `${primaryCampaign.confirmationRate}%` : "--" },
+                      ].map((item) => (
+                        <div key={item.label} className="rounded-[18px] bg-white/70 px-4 py-3">
+                          <p className="text-sm text-muted-foreground">{item.label}</p>
+                          <p className="metric-value mt-2 text-3xl text-foreground">{item.value}</p>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </motion.div>
+        </div>
+      </section>
+
+      <section id="capabilities" className="px-4 py-20 sm:px-6">
+        <div className="mx-auto max-w-7xl">
+          <div className="max-w-2xl">
+            <p className="section-eyebrow">What ships in v1</p>
+            <h2 className="page-hero-title mt-4 font-semibold text-foreground">
+              Each product surface now maps directly to the PRD, not just to generic dashboard patterns.
+            </h2>
+          </div>
+
+          <div className="mt-12 grid gap-4 lg:grid-cols-4">
+            {capabilityCards.map((card, index) => (
               <motion.div
-                key={m.label}
+                key={card.title}
+                initial="hidden"
+                whileInView="visible"
+                viewport={{ once: true, margin: "-120px" }}
                 variants={fadeUp}
-                custom={i}
-                className="rounded-2xl border border-landing-surface bg-landing-surface/30 p-8"
+                custom={index}
+                className="panel-surface rounded-[30px] p-6"
               >
-                <p className="font-display text-4xl md:text-5xl text-primary">{m.val}</p>
-                <p className="mt-3 text-sm font-medium">{m.label}</p>
-                <p className="mt-1 text-xs text-landing-muted font-mono">{m.sub}</p>
+                <div className="flex h-12 w-12 items-center justify-center rounded-[18px] bg-foreground text-background">
+                  <card.icon className="h-5 w-5" />
+                </div>
+                <h3 className="mt-6 text-xl font-semibold text-foreground">{card.title}</h3>
+                <p className="mt-3 text-sm leading-7 text-muted-foreground">{card.description}</p>
               </motion.div>
             ))}
-          </motion.div>
-        </div>
-      </section>
-
-      {/* CTA */}
-      <section className="py-24 border-t border-landing-surface">
-        <div className="mx-auto max-w-3xl px-6 text-center">
-          <motion.div initial="hidden" whileInView="visible" viewport={{ once: true }} variants={stagger}>
-            <motion.h2 variants={fadeUp} custom={0} className="font-display text-4xl md:text-6xl tracking-tight">
-              Ready to <span className="italic text-primary">engage</span> India?
-            </motion.h2>
-            <motion.p variants={fadeUp} custom={1} className="mt-6 text-landing-muted text-lg font-sans leading-relaxed">
-              Launch your first outbound data-collection campaign in minutes. Voice-first, multilingual, compliant.
-            </motion.p>
-            <motion.div variants={fadeUp} custom={2} className="mt-10 flex flex-wrap justify-center gap-4">
-              <Link
-                to="/dashboard"
-                className="group flex items-center gap-2 rounded-xl bg-primary px-8 py-4 text-sm font-semibold text-primary-foreground hover:bg-primary/90 transition-all shadow-lg shadow-primary/20"
-              >
-                Get Started Free
-                <ArrowRight className="h-4 w-4 group-hover:translate-x-1 transition-transform" />
-              </Link>
-              <a
-                href="#features"
-                className="flex items-center gap-2 rounded-xl border border-landing-surface px-8 py-4 text-sm font-medium text-landing-fg hover:bg-landing-surface transition-all"
-              >
-                Watch Demo
-              </a>
-            </motion.div>
-          </motion.div>
-        </div>
-      </section>
-
-      {/* Footer */}
-      <footer className="border-t border-landing-surface py-12">
-        <div className="mx-auto max-w-7xl px-6">
-          <div className="flex flex-col md:flex-row items-center justify-between gap-6">
-            <div className="flex items-center gap-2.5">
-              <div className="flex h-7 w-7 items-center justify-center rounded-md bg-primary">
-                <Flame className="h-3.5 w-3.5 text-primary-foreground" />
-              </div>
-              <span className="font-display text-base">BharatVaani Engage</span>
-            </div>
-            <div className="flex gap-8 text-xs text-landing-muted">
-              <span>Privacy Policy</span>
-              <span>Terms of Service</span>
-              <span>API Documentation</span>
-              <span>Contact</span>
-            </div>
-            <p className="text-xs text-landing-muted font-mono">© 2026 BharatVaani</p>
           </div>
         </div>
-      </footer>
+      </section>
+
+      <section id="surfaces" className="px-4 py-20 sm:px-6">
+        <div className="mx-auto grid max-w-7xl gap-5 lg:grid-cols-[0.95fr_1.05fr]">
+          <div className="panel-strong rounded-[34px] p-7">
+            <p className="section-eyebrow">Product surfaces</p>
+            <h2 className="page-hero-title mt-4 font-semibold text-foreground">
+              One app, two operating modes.
+            </h2>
+            <p className="mt-5 max-w-2xl text-[15px] leading-7 text-muted-foreground">
+              The redesign separates the jobs to be done. Campaign managers author journeys and uploads. Operations teams
+              monitor attempts, transcripts, exports, and audits without losing the client context.
+            </p>
+
+            <div className="mt-8 space-y-3">
+              {launchCards.map((card) => (
+                <div key={card.title} className="inset-surface rounded-[24px] p-5">
+                  <h3 className="text-lg font-semibold text-foreground">{card.title}</h3>
+                  <p className="mt-2 text-sm leading-7 text-muted-foreground">{card.description}</p>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          <div className="grid gap-4">
+            <div className="panel-surface rounded-[32px] p-6">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="section-eyebrow">Core workflow</p>
+                  <h3 className="mt-3 text-2xl font-semibold text-foreground">Create, launch, verify, export</h3>
+                </div>
+                <BarChart3 className="h-5 w-5 text-primary" />
+              </div>
+
+              <div className="mt-6 grid gap-3 md:grid-cols-2">
+                {[
+                  "Template-driven builder",
+                  "Linear schema configuration",
+                  "CSV validation and dedupe",
+                  "Outcome-based orchestration",
+                  "Redacted transcripts",
+                  "Masked CSV exports",
+                ].map((item) => (
+                  <div key={item} className="flex items-center gap-3 rounded-[20px] bg-white/70 px-4 py-3">
+                    <CheckCircle2 className="h-4 w-4 text-primary" />
+                    <span className="text-sm font-medium text-foreground">{item}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            <div className="grid gap-4 sm:grid-cols-3">
+              {[
+                { icon: PhoneCall, label: "Voice", text: "Primary collection channel" },
+                { icon: MessageSquare, label: "SMS", text: "Missed call recovery and reminders" },
+                { icon: MessageCircle, label: "WhatsApp", text: "Summary and partial re-engagement" },
+              ].map((item) => (
+                <div key={item.label} className="panel-surface rounded-[28px] p-5">
+                  <div className="flex h-11 w-11 items-center justify-center rounded-[16px] bg-primary/10 text-primary">
+                    <item.icon className="h-4 w-4" />
+                  </div>
+                  <h4 className="mt-5 text-lg font-semibold text-foreground">{item.label}</h4>
+                  <p className="mt-2 text-sm leading-6 text-muted-foreground">{item.text}</p>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section id="methodology" className="px-4 py-20 sm:px-6">
+        <div className="mx-auto max-w-7xl">
+          <div className="max-w-3xl">
+            <p className="section-eyebrow">Design methodology</p>
+            <h2 className="page-hero-title mt-4 font-semibold text-foreground">
+              The UI is rebuilt around product architecture and software design principles.
+            </h2>
+            <p className="mt-5 text-[15px] leading-7 text-muted-foreground">
+              The interface follows the PRD structure, uses progressive disclosure in the builder, keeps system status
+              visible in operations, and treats data sensitivity as a first-class visual state instead of a small label.
+            </p>
+          </div>
+
+          <div className="mt-12 grid gap-4 md:grid-cols-2 xl:grid-cols-4">
+            {methodologyCards.map((card) => (
+              <div key={card.title} className="panel-surface rounded-[30px] p-6">
+                <p className="section-eyebrow">Principle</p>
+                <h3 className="mt-4 text-xl font-semibold text-foreground">{card.title}</h3>
+                <p className="mt-3 text-sm leading-7 text-muted-foreground">{card.detail}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      <section className="px-4 pb-24 pt-12 sm:px-6">
+        <div className="mx-auto max-w-5xl">
+          <div className="panel-strong rounded-[36px] p-8 text-center sm:p-10">
+            <p className="section-eyebrow">Ready to explore the redesign</p>
+            <h2 className="page-hero-title mt-4 font-semibold text-foreground">
+              Campaign authoring, live operations, and reporting now feel like one product.
+            </h2>
+            <p className="mx-auto mt-5 max-w-2xl text-[15px] leading-7 text-muted-foreground">
+              Open the workspace to review the redesigned dashboard, campaign builder, journeys, records, and settings.
+            </p>
+            <div className="mt-8 flex flex-wrap justify-center gap-3">
+              <Link to="/dashboard">
+                <Button size="lg" className="gap-2">
+                  Enter workspace
+                  <ArrowRight className="h-4 w-4" />
+                </Button>
+              </Link>
+              <a href="#capabilities">
+                <Button variant="outline" size="lg">
+                  Review capabilities
+                </Button>
+              </a>
+            </div>
+            <div className="mt-10 flex flex-wrap justify-center gap-3">
+              {[
+                { icon: Files, label: "Masked exports" },
+                { icon: Shield, label: "Sensitive field review" },
+                { icon: Route, label: "Sequenced journeys" },
+              ].map((item) => (
+                <div key={item.label} className="inline-flex items-center gap-2 rounded-full bg-white/60 px-4 py-2 text-sm text-foreground">
+                  <item.icon className="h-4 w-4 text-primary" />
+                  {item.label}
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      </section>
     </div>
   );
 }
